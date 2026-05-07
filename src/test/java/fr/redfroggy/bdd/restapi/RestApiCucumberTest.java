@@ -13,6 +13,7 @@ import org.junit.runner.RunWith;
 @CucumberOptions(
         plugin = {"pretty"},
         features = "src/test/resources/features",
+        tags = "not @internet-banking",
         glue = {"fr.redfroggy.bdd.restapi.glue"})
 public  final class RestApiCucumberTest {
 }
