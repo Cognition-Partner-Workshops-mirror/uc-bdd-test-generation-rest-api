@@ -1,0 +1,64 @@
+# Step Configuration for Excel Test Runner
+# Each entry maps a step description pattern (regex) to its HTTP method, endpoint,
+# JSON template, required data fields, and response verification rules.
+steps:
+  - stepPattern: "Create a new user"
+    httpMethod: "POST"
+    endpoint: "/api/users"
+    jsonTemplate: '{"username": "${username}", "email": "${email}", "password": "${password}"}'
+    requiredFields:
+      - username
+      - email
+      - password
+    verifications:
+      - type: "status-check"
+        expectedValue: "201"
+
+  - stepPattern: "Get user by ID"
+    httpMethod: "GET"
+    endpoint: "/api/users/{userId}"
+    requiredFields:
+      - userId
+    verifications:
+      - type: "status-check"
+        expectedValue: "200"
+
+  - stepPattern: "Update user details"
+    httpMethod: "PUT"
+    endpoint: "/api/users/{userId}"
+    jsonTemplate: '{"username": "${username}", "email": "${email}"}'
+    requiredFields:
+      - userId
+      - username
+      - email
+    verifications:
+      - type: "status-check"
+        expectedValue: "200"
+
+  - stepPattern: "Delete user"
+    httpMethod: "DELETE"
+    endpoint: "/api/users/{userId}"
+    requiredFields:
+      - userId
+    verifications:
+      - type: "status-check"
+        expectedValue: "204"
+
+  - stepPattern: "List all users"
+    httpMethod: "GET"
+    endpoint: "/api/users"
+    verifications:
+      - type: "status-check"
+        expectedValue: "200"
+
+  - stepPattern: "Verify user exists"
+    httpMethod: "GET"
+    endpoint: "/api/users/{userId}"
+    requiredFields:
+      - userId
+    verifications:
+      - type: "status-check"
+        expectedValue: "200"
+      - type: "json-path-equals"
+        jsonPath: "$.username"
+        expectedValue: "${username}"
