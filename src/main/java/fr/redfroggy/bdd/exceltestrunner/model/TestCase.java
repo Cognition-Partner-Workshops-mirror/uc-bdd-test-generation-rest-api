@@ -26,6 +26,12 @@ public class TestCase {
     // Overall status of the test case: PASS, FAIL, or SKIP
     private String status;
 
+    // Execution status from the Excel file (user-provided initial status)
+    private String executionStatus;
+
+    // Execution date from the Excel file (user-provided date of execution)
+    private String executionDate;
+
     // Total execution duration for all steps in milliseconds
     private long totalDurationMs;
 
@@ -107,5 +113,21 @@ public class TestCase {
 
     public void setTotalDurationMs(long totalDurationMs) {
         this.totalDurationMs = totalDurationMs;
+    }
+
+    public String getExecutionStatus() {
+        return executionStatus;
+    }
+
+    public void setExecutionStatus(String executionStatus) {
+        this.executionStatus = executionStatus;
+    }
+
+    public String getExecutionDate() {
+        return executionDate;
+    }
+
+    public void setExecutionDate(String executionDate) {
+        this.executionDate = executionDate;
     }
 }

@@ -29,6 +29,9 @@ public class ReportGeneratorTest {
         tc.addStep(step);
         tc.setStatus("PASS");
         tc.setTotalDurationMs(50L);
+        // Set Execution status and Execution Date for report column rendering
+        tc.setExecutionStatus("Pending");
+        tc.setExecutionDate("2026-01-15");
 
         ExecutionReport report = new ExecutionReport(Collections.singletonList(tc));
 
@@ -41,6 +44,11 @@ public class ReportGeneratorTest {
         Assert.assertTrue(html.contains("User Test"));
         Assert.assertTrue(html.contains("Create user"));
         Assert.assertTrue(html.contains("PASS"));
+        // Verify Execution Status and Execution Date columns appear in the report
+        Assert.assertTrue(html.contains("Execution Status"));
+        Assert.assertTrue(html.contains("Execution Date"));
+        Assert.assertTrue(html.contains("Pending"));
+        Assert.assertTrue(html.contains("2026-01-15"));
     }
 
     @Test
@@ -179,6 +187,7 @@ public class ReportGeneratorTest {
         TestCase tc = new TestCase("TC001", null, null);
         tc.setStatus("PASS");
         tc.setTotalDurationMs(0L);
+        // executionStatus and executionDate are null, escapeHtml should handle gracefully
 
         ExecutionReport report = new ExecutionReport(Collections.singletonList(tc));
         String html = reportGenerator.generateHtml(report);

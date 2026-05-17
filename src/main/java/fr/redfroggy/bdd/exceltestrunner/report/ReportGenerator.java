@@ -75,7 +75,7 @@ public class ReportGenerator {
         html.append("<h2>Detailed Results</h2>");
         html.append("<table>");
         html.append("<tr><th>TC#</th><th>Title</th><th>Step</th><th>Status</th>");
-        html.append("<th>Duration</th><th>Details</th></tr>");
+        html.append("<th>Duration</th><th>Execution Status</th><th>Execution Date</th><th>Details</th></tr>");
 
         for (TestCase testCase : report.getTestCases()) {
             // Test case header row
@@ -86,6 +86,9 @@ public class ReportGenerator {
             html.append("<td class='").append(testCase.getStatus().toLowerCase()).append("'>")
                     .append(testCase.getStatus()).append("</td>");
             html.append("<td>").append(testCase.getTotalDurationMs()).append("ms</td>");
+            // Execution Status and Execution Date columns from Excel template
+            html.append("<td>").append(escapeHtml(testCase.getExecutionStatus())).append("</td>");
+            html.append("<td>").append(escapeHtml(testCase.getExecutionDate())).append("</td>");
             html.append("<td></td>");
             html.append("</tr>");
 
@@ -97,6 +100,7 @@ public class ReportGenerator {
                 html.append("<td class='").append(step.getStatus().toLowerCase()).append("'>")
                         .append(step.getStatus()).append("</td>");
                 html.append("<td>").append(step.getDurationMs()).append("ms</td>");
+                html.append("<td></td><td></td>");
                 html.append("<td>");
                 if (step.getErrorMessage() != null && !step.getErrorMessage().isEmpty()) {
                     html.append("<span class='error-msg'>")

@@ -28,9 +28,9 @@ import java.util.Map;
 @Component
 public class ExcelParser {
 
-    // Expected column headers in the Excel template
+    // Expected column headers in the Excel template (all 7 columns)
     private static final List<String> EXPECTED_HEADERS = Arrays.asList(
-            "TC#", "Title", "Description", "Steps", "Data"
+            "TC#", "Title", "Description", "Steps", "Data", "Execution status", "Execution Date"
     );
 
     /**
@@ -106,6 +106,9 @@ public class ExcelParser {
             String description = getCellValueAsString(row.getCell(2)).trim();
             String stepDescription = getCellValueAsString(row.getCell(3)).trim();
             String dataColumn = getCellValueAsString(row.getCell(4)).trim();
+            // Read Execution status and Execution Date columns (columns 5 and 6)
+            String executionStatus = getCellValueAsString(row.getCell(5)).trim();
+            String executionDate = getCellValueAsString(row.getCell(6)).trim();
 
             // Skip completely empty rows
             if (tcNumber.isEmpty() && stepDescription.isEmpty()) {
@@ -116,10 +119,13 @@ public class ExcelParser {
             TestCase testCase = testCaseMap.get(tcNumber);
             if (testCase == null) {
                 testCase = new TestCase(tcNumber, title, description);
+                // Set execution status and date from the first row of this test case
+                testCase.setExecutionStatus(executionStatus);
+                testCase.setExecutionDate(executionDate);
                 testCaseMap.put(tcNumber, testCase);
             }
 
-            // Parse data column and create a test step
+            // Parse data column into key-value pairs and create a test step
             if (!stepDescription.isEmpty()) {
                 Map<String, String> parsedData = DataColumnParser.parse(dataColumn);
                 TestStep step = new TestStep(stepDescription, parsedData);

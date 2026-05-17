@@ -17,6 +17,8 @@ public class TestCaseTest {
         Assert.assertNull(tc.getTcNumber());
         Assert.assertNull(tc.getTitle());
         Assert.assertNull(tc.getDescription());
+        Assert.assertNull(tc.getExecutionStatus());
+        Assert.assertNull(tc.getExecutionDate());
         Assert.assertEquals(0L, tc.getTotalDurationMs());
     }
 
@@ -48,6 +50,9 @@ public class TestCaseTest {
         tc.setDescription("Description 2");
         tc.setStatus("PASS");
         tc.setTotalDurationMs(500L);
+        // Set Execution status and Execution Date fields from Excel template
+        tc.setExecutionStatus("Completed");
+        tc.setExecutionDate("2026-01-15");
 
         List<TestStep> steps = new ArrayList<>();
         steps.add(new TestStep("S1", null));
@@ -59,5 +64,8 @@ public class TestCaseTest {
         Assert.assertEquals("PASS", tc.getStatus());
         Assert.assertEquals(500L, tc.getTotalDurationMs());
         Assert.assertEquals(1, tc.getSteps().size());
+        // Verify Execution status and Execution Date fields
+        Assert.assertEquals("Completed", tc.getExecutionStatus());
+        Assert.assertEquals("2026-01-15", tc.getExecutionDate());
     }
 }

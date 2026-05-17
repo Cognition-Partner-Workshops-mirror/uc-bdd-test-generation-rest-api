@@ -451,6 +451,81 @@ public class StepExecutorTest {
         Assert.assertTrue(step.getErrorMessage().contains("Connection refused"));
     }
 
+    @Test
+    public void shouldResolveExpectedValuePlaceholdersInJsonPathVerification() {
+        // Verify that ${...} placeholders in verification expectedValue are resolved
+        // using step data (e.g., expectedValue: "${username}" resolves to actual username)
+        VerificationConfig verification = new VerificationConfig();
+        verification.setType("json-path-equals");
+        verification.setJsonPath("$.username");
+        verification.setExpectedValue("${username}");
+        StepConfig config = createStepConfig("GET", "/api/users/{userId}", null,
+                Collections.singletonList("userId"), Collections.singletonList(verification));
+        when(stepConfigLoader.findByDescription("Verify user")).thenReturn(config);
+
+        ResponseEntity<String> response = new ResponseEntity<>("{\"username\":\"john_doe\"}", HttpStatus.OK);
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(), eq(String.class)))
+                .thenReturn(response);
+
+        Map<String, String> data = new HashMap<>();
+        data.put("userId", "1");
+        data.put("username", "john_doe");
+        TestStep step = new TestStep("Verify user", data);
+
+        stepExecutor.execute(step, "http://localhost:8080");
+        // Should PASS because ${username} resolves to "john_doe" matching response
+        Assert.assertEquals("PASS", step.getStatus());
+    }
+
+    @Test
+    public void shouldResolveExpectedValuePlaceholdersInArrayContainsVerification() {
+        // Verify that ${...} placeholders in array-contains expectedValue are resolved
+        VerificationConfig verification = new VerificationConfig();
+        verification.setType("array-contains");
+        verification.setJsonPath("$.names");
+        verification.setExpectedValue("${name}");
+        StepConfig config = createStepConfig("GET", "/api/users", null,
+                null, Collections.singletonList(verification));
+        when(stepConfigLoader.findByDescription("List users")).thenReturn(config);
+
+        ResponseEntity<String> response = new ResponseEntity<>("{\"names\":[\"Alice\",\"Bob\"]}", HttpStatus.OK);
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(), eq(String.class)))
+                .thenReturn(response);
+
+        Map<String, String> data = new HashMap<>();
+        data.put("name", "Alice");
+        TestStep step = new TestStep("List users", data);
+
+        stepExecutor.execute(step, "http://localhost:8080");
+        // Should PASS because ${name} resolves to "Alice" which is in the array
+        Assert.assertEquals("PASS", step.getStatus());
+    }
+
+    @Test
+    public void shouldFailWhenResolvedPlaceholderDoesNotMatchResponse() {
+        // Verify that resolved placeholder correctly causes failure on mismatch
+        VerificationConfig verification = new VerificationConfig();
+        verification.setType("json-path-equals");
+        verification.setJsonPath("$.username");
+        verification.setExpectedValue("${username}");
+        StepConfig config = createStepConfig("GET", "/api/users/{userId}", null,
+                Collections.singletonList("userId"), Collections.singletonList(verification));
+        when(stepConfigLoader.findByDescription("Verify user")).thenReturn(config);
+
+        ResponseEntity<String> response = new ResponseEntity<>("{\"username\":\"jane_doe\"}", HttpStatus.OK);
+        when(restTemplate.exchange(anyString(), any(HttpMethod.class), any(), eq(String.class)))
+                .thenReturn(response);
+
+        Map<String, String> data = new HashMap<>();
+        data.put("userId", "1");
+        data.put("username", "john_doe");
+        TestStep step = new TestStep("Verify user", data);
+
+        stepExecutor.execute(step, "http://localhost:8080");
+        // Should FAIL because ${username} resolves to "john_doe" but response has "jane_doe"
+        Assert.assertEquals("FAIL", step.getStatus());
+    }
+
     private StepConfig createStepConfig(String method, String endpoint, String jsonTemplate,
                                          java.util.List<String> requiredFields,
                                          java.util.List<VerificationConfig> verifications) {

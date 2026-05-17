@@ -179,10 +179,13 @@ public class StepExecutor {
         }
 
         for (VerificationConfig verification : verifications) {
+            // Resolve ${...} placeholders in expectedValue using step data
+            String resolvedExpectedValue = resolvePlaceholders(verification.getExpectedValue(), step.getData());
+
             switch (verification.getType()) {
                 case "status-check":
                     // Verify HTTP status code matches expected value
-                    int expectedStatus = Integer.parseInt(verification.getExpectedValue());
+                    int expectedStatus = Integer.parseInt(resolvedExpectedValue);
                     if (response.getStatusCodeValue() != expectedStatus) {
                         throw new AssertionError(String.format(
                                 "Expected status %d but got %d", expectedStatus, response.getStatusCodeValue()));
@@ -190,25 +193,25 @@ public class StepExecutor {
                     break;
 
                 case "json-path-equals":
-                    // Verify a JSON path in the response body equals the expected value
+                    // Verify a JSON path in the response body equals the resolved expected value
                     if (response.getBody() != null && verification.getJsonPath() != null) {
                         Object actualValue = JsonPath.read(response.getBody(), verification.getJsonPath());
-                        if (!String.valueOf(actualValue).equals(verification.getExpectedValue())) {
+                        if (!String.valueOf(actualValue).equals(resolvedExpectedValue)) {
                             throw new AssertionError(String.format(
                                     "JSON path '%s': expected '%s' but got '%s'",
-                                    verification.getJsonPath(), verification.getExpectedValue(), actualValue));
+                                    verification.getJsonPath(), resolvedExpectedValue, actualValue));
                         }
                     }
                     break;
 
                 case "array-contains":
-                    // Verify the response body (as JSON array) contains the expected value
+                    // Verify the response body (as JSON array) contains the resolved expected value
                     if (response.getBody() != null && verification.getJsonPath() != null) {
                         Object arrayValue = JsonPath.read(response.getBody(), verification.getJsonPath());
-                        if (!String.valueOf(arrayValue).contains(verification.getExpectedValue())) {
+                        if (!String.valueOf(arrayValue).contains(resolvedExpectedValue)) {
                             throw new AssertionError(String.format(
                                     "Array at '%s' does not contain '%s'",
-                                    verification.getJsonPath(), verification.getExpectedValue()));
+                                    verification.getJsonPath(), resolvedExpectedValue));
                         }
                     }
                     break;
@@ -218,5 +221,24 @@ public class StepExecutor {
                     break;
             }
         }
+    }
+
+    /**
+     * Resolves ${fieldName} placeholders in a string using step data values.
+     * Used to substitute dynamic expected values in verification rules.
+     *
+     * @param template the string potentially containing ${...} placeholders
+     * @param data     the data map with replacement values
+     * @return the resolved string with placeholders replaced by actual data values
+     */
+    private String resolvePlaceholders(String template, Map<String, String> data) {
+        if (template == null || data == null) {
+            return template;
+        }
+        String resolved = template;
+        for (Map.Entry<String, String> entry : data.entrySet()) {
+            resolved = resolved.replace("${" + entry.getKey() + "}", entry.getValue());
+        }
+        return resolved;
     }
 }
